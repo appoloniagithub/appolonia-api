@@ -81,7 +81,7 @@ const getMyScans = async (req, res) => {
           message: "found scans",
           data: {
             success: 1,
-            scans: foundScans,
+            scans: foundScans.reverse(),
           },
         });
         return;
