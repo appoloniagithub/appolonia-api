@@ -40,7 +40,7 @@ const Settings = require("../Models/Settings");
 
 // const accountSid = "AC05d6ccacda0201d3e850b4ce60c773af";
 // const authToken = "5f7f59ab3a6bdf8fcc2d810e6be45f98";
-const client = require("twilio")(accountSid, authToken);
+// const client = require("twilio")(accountSid, authToken);
 
 const getUsers = async (req, res, next) => {
   let users;
@@ -1138,16 +1138,16 @@ const sendPhoneOtp = async (phone, otp) => {
   const to = phone;
   const text = `Your Verification OTP is ${otp}`;
 
-  let res = await client.messages
-    .create({
-      to: `+${phone}`,
-      body: `Your Verification OTP is ${otp}`,
-      from: "+18586306724",
-    })
-    .then((message) => console.log(message))
-    .done();
+  // let res = await client.messages
+  //   .create({
+  //     to: `+${phone}`,
+  //     body: `Your Verification OTP is ${otp}`,
+  //     from: "+18586306724",
+  //   })
+  //   .then((message) => console.log(message))
+  //   .done();
 
-  console.log(res);
+  // console.log(res);
 
   return res;
 };
@@ -2657,8 +2657,9 @@ const getAllDoctors = async (req, res) => {
       foundDoctors,
       foundAdmin,
     ]);
+    console.log(foundAdminResolved , foundDoctorsResolved , "we are resolved")
 
-    foundDoctors = [foundAdminResolved, ...foundDoctorsResolved];
+    foundDoctors = [...foundAdminResolved, ...foundDoctorsResolved];
     if (foundDoctors.length > 0) {
       res.json({
         serverError: 0,
