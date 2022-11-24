@@ -20,6 +20,9 @@ const fileSchema = new Schema({
   },
   emiratesId: { type: String },
   uniqueId: { type: String }, //emiid
+
+  fileNumber: { type: String },
+  uniId: { type: String }, //fileno
 });
 
 // userSchema.plugin(uniqueValidator);

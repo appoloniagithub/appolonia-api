@@ -808,7 +808,7 @@ const signup = async (req, res, next) => {
     password,
     city,
     gender,
-    isSignupWithFileNumber,
+    //isSignupWithFileNumber,
     fileId,
     dob,
   } = req.body;
@@ -817,19 +817,21 @@ const signup = async (req, res, next) => {
   if (isExisting === "0") {
     try {
       let existingUser;
-      // existingUser = await User.findOne({ uniqueId1: emiratesId });
+      existingUser = await User.findOne({ uniqueId1: fileNumber });
 
-      // if (existingUser) {
-      //   // throw new Error("User Already Exist");
-      //   res.json({
-      //     serverError: 0,
-      //     message: "User Already Exist",
-      //     data: {
-      //       success: 0,
-      //     },
-      //   });
-      //   return;
-      // }
+      if (existingUser) {
+        //throw new Error("User Already Exist");
+        res.json({
+          serverError: 0,
+          message: "File Number Already Exist",
+          data: {
+            success: 0,
+            isExisting: 1,
+            phoneVerified: 0,
+          },
+        });
+        return;
+      }
 
       existingUser = await User.findOne({ uniqueId2: emiratesId });
 
@@ -878,13 +880,31 @@ const signup = async (req, res, next) => {
         return;
       }
 
+      userPhoneExist = await File.findOne({ uniId: fileNumber });
+      if (userPhoneExist) {
+        // throw new Error("Emirates Id Already Exist");
+        res.json({
+          serverError: 0,
+          message:
+            "This File Number Already already associated with a family account",
+          data: {
+            success: 0,
+            phoneVerified: userPhoneExist?.phoneVerified === true ? 1 : 0,
+            isExisting: 1,
+          },
+        });
+        return;
+      }
+
       let hashedemiratesId;
       let hashedpassword;
+      let hashedFileNumber;
 
       try {
         hashedpassword = await bcrypt.hash(password, 12);
         hashedemiratesId = CryptoJS.AES.encrypt(emiratesId, "love").toString();
         console.log(hashedemiratesId, "i am emirates");
+        hashedFileNumber = CryptoJS.AES.encrypt(fileNumber, "love").toString();
       } catch (err) {
         console.log("Something went wrong while Encrypting Data", err);
 
@@ -912,8 +932,8 @@ const signup = async (req, res, next) => {
         city,
         gender,
         dob,
-        fileNumber: "",
-        uniqueId1: "",
+        fileNumber: hashedFileNumber,
+        uniqueId1: fileNumber,
         uniqueId2: emiratesId,
         image:
           "https://www.clipartmax.com/png/middle/344-3442642_clip-art-freeuse-library-profile-man-user-people-icon-icono-de-login.png",
@@ -930,6 +950,8 @@ const signup = async (req, res, next) => {
         city,
         emiratesId: hashedemiratesId,
         uniqueId: emiratesId,
+        fileNumber: hashedFileNumber,
+        uniId: fileNumber,
       });
 
       createdUser.save((err, userDoc) => {
@@ -992,6 +1014,8 @@ const signup = async (req, res, next) => {
                         familyMembers: {
                           memberEmiratesId: hashedemiratesId,
                           uniqueId: emiratesId,
+                          memberFileNumber: hashedFileNumber,
+                          uniId: fileNumber,
                           connected: true,
                           userId: userDoc._id.toString(),
                         },
@@ -1241,6 +1265,8 @@ const emailVerify = async (req, res) => {
                       "familyMembers",
                       "emiratesId",
                       "phoneNumber",
+                      "fileNumber",
+                      "uniId",
                     ]);
 
                     res.json({
@@ -2646,6 +2672,7 @@ const getAllDoctors = async (req, res) => {
       "firstName",
       "lastName",
       "role",
+      "speciality",
     ]);
     let foundAdmin = User.find({ role: "3" }, [
       "firstName",
@@ -2657,7 +2684,7 @@ const getAllDoctors = async (req, res) => {
       foundDoctors,
       foundAdmin,
     ]);
-    console.log(foundAdminResolved , foundDoctorsResolved , "we are resolved")
+    console.log(foundAdminResolved, foundDoctorsResolved, "we are resolved");
 
     foundDoctors = [...foundAdminResolved, ...foundDoctorsResolved];
     if (foundDoctors.length > 0) {
