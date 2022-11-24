@@ -2678,6 +2678,7 @@ const getAllDoctors = async (req, res) => {
       "firstName",
       "lastName",
       "role",
+      "speciality",
     ]);
 
     let [foundDoctorsResolved, foundAdminResolved] = await Promise.all([
