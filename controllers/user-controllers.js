@@ -2646,7 +2646,6 @@ const getAllDoctors = async (req, res) => {
       "firstName",
       "lastName",
       "role",
-      "speciality",
     ]);
     let foundAdmin = User.find({ role: "3" }, [
       "firstName",
