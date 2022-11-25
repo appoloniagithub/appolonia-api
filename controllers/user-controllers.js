@@ -78,6 +78,7 @@ const getUserdata = async (req, res) => {
       city: foundUser.city,
       dob: foundUser.dob,
       role: foundUser.role,
+      image: foundUser.image,
     };
     res.json({
       serverError: 0,
@@ -117,6 +118,7 @@ const updateUserProfile = async (req, res) => {
     isFamilyHead,
     userId,
     fileId,
+    image,
   } = req.body;
 
   if (isFileNumberChanged === "1") {
@@ -171,6 +173,7 @@ const updateUserProfile = async (req, res) => {
     city,
     uniqueId1: fileNumber,
     uniqueId2: emiratesId,
+    image,
   };
 
   try {
@@ -935,8 +938,7 @@ const signup = async (req, res, next) => {
         fileNumber: hashedFileNumber,
         uniqueId1: fileNumber,
         uniqueId2: emiratesId,
-        image:
-          "https://www.clipartmax.com/png/middle/344-3442642_clip-art-freeuse-library-profile-man-user-people-icon-icono-de-login.png",
+        image: image,
       });
 
       const createdFile = new File({
@@ -1911,7 +1913,7 @@ const login = async (req, res, next) => {
           image: familyHead?.image
             ? familyHead?.image
             : "https://www.clipartmax.com/png/middle/344-3442642_clip-art-freeuse-library-profile-man-user-people-icon-icono-de-login.png",
-          scans: userScansResolved,
+          //scans: userScansResolved,
         };
         console.log(familyHead, "i am head");
         res.json({
