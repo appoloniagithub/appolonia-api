@@ -938,7 +938,7 @@ const signup = async (req, res, next) => {
         fileNumber: hashedFileNumber,
         uniqueId1: fileNumber,
         uniqueId2: emiratesId,
-        image: image,
+        //image: image,
       });
 
       const createdFile = new File({
