@@ -5,17 +5,30 @@ const Settings = require("../Models/Settings");
 const Scans = require("../Models/Scans");
 
 const submitScans = async (req, res) => {
+  console.log(req.files, "i am files");
+
+  let faceScans = [];
+  if (req?.files?.length > 0) {
+    console.log(req.files, "here are the files");
+    faceScans = req.files.map((file) => file.path);
+  }
+
+  let teethScans = [];
+  if (req?.files?.length > 0) {
+    console.log(req.files, "here are the files");
+    teethScans = req.files.map((file) => file.path);
+  }
+
   console.log(req.body);
-  const { userId, doctorId, doctorName, faceScanImages, teethScanImages } =
-    req.body;
+  const { userId, doctorId, doctorName } = req.body;
   try {
-    if ((userId, doctorId, faceScanImages, teethScanImages)) {
+    if ((userId, doctorId)) {
       let createdScan = new Scans({
         userId,
         doctorId,
         doctorName,
-        faceScanImages,
-        teethScanImages,
+        faceScanImages: faceScans,
+        teethScanImages: teethScans,
         created: Date.now(),
       });
       createdScan.save((err, doc) => {
@@ -39,7 +52,7 @@ const submitScans = async (req, res) => {
             data: {
               success: 1,
               scanId: doc?._id,
-              scanFirstImage: teethScanImages[0],
+              //scanFirstImage: teethScanImages[0],
             },
           });
           return;
