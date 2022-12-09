@@ -58,6 +58,9 @@ app.use("/api/custompages", customPagesRoutes);
 //Admin
 app.use("/api/patient", patientRoutes);
 
+app.use("/api/uploads", express.static("uploads"));
+app.use("/images", express.static("images"));
+
 app.listen(PORT, () => {
   console.log("listening on " + PORT);
 });
