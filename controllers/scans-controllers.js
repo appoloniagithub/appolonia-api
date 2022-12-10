@@ -94,8 +94,8 @@ const submitScans = async function (body) {
                   data: {
                     success: 1,
                     scanId: doc?._id,
-                    faceScanPaths: updatedFaceScanImages,
-                    teethScanPaths: updatedTeethScanImages,
+                    faceScanImages: updatedFaceScanImages,
+                    teethScanImages: updatedTeethScanImages,
                   },
                 });
               }
