@@ -43,7 +43,11 @@ router.post("/newpasswordforgot", usersController.newPassword);
 router.post("/contact", upload.array("files"), usersController.contact);
 router.post("/profileget", authCheck, usersController.getUserdata);
 router.post("/changepassword", authCheck, usersController.changePassword);
-router.post("/updateprofile", authCheck, usersController.updateUserProfile);
+router.post(
+  "/updateprofile",
+  [authCheck, upload.single("image")],
+  usersController.updateUserProfile
+);
 router.post("/deleteaccount", usersController.deleteAccount);
 
 router.get("/getalldoctors", authCheck, usersController.getAllDoctors);

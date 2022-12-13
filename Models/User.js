@@ -18,8 +18,7 @@ const userSchema = new Schema({
     type: String,
   },
   image: {
-    type: String,
-    default: "",
+    type: Array,
   },
   created: {
     type: Date,
