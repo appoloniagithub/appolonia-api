@@ -104,6 +104,11 @@ const getUserdata = async (req, res) => {
 
 const updateUserProfile = async (req, res) => {
   console.log(req.body);
+  let imageFiles = [];
+  if (req?.files?.length > 0) {
+    console.log(req.files, "here are the files");
+    filesName = req.files.map((file) => file.path);
+  }
   const {
     firstName,
     lastName,
@@ -118,7 +123,6 @@ const updateUserProfile = async (req, res) => {
     isFamilyHead,
     userId,
     fileId,
-    image,
   } = req.body;
 
   if (isFileNumberChanged === "1") {
@@ -173,7 +177,7 @@ const updateUserProfile = async (req, res) => {
     city,
     uniqueId1: fileNumber,
     uniqueId2: emiratesId,
-    image,
+    image: imageFiles,
   };
 
   try {
