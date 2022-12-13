@@ -45,7 +45,7 @@ router.post("/profileget", authCheck, usersController.getUserdata);
 router.post("/changepassword", authCheck, usersController.changePassword);
 router.post(
   "/updateprofile",
-  [authCheck, upload.single("image")],
+  [authCheck, upload.array("image")],
   usersController.updateUserProfile
 );
 router.post("/deleteaccount", usersController.deleteAccount);
