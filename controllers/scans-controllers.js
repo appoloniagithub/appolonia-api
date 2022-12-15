@@ -75,9 +75,9 @@ const submitScans = async function (body) {
             }
             let updatedTeethScanImages = [];
             for (i = 0; i < teethScanImages.length; i++) {
-              const base64Data = teethScanImages[i].replace(
-                "data:image/png;base64,",
-                ""
+              const base64Data = new Buffer.from(
+                faceScanImages[i].replace(/^data:image\/\w+;base64,/, ""),
+                "base64"
               );
               const path = Date.now() + ".png";
               // let getPath = await updatedFilePaths(path, base64Data);
