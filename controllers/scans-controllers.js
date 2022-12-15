@@ -4,6 +4,16 @@ const File = require("../Models/File");
 const Settings = require("../Models/Settings");
 const Scans = require("../Models/Scans");
 const fs = require("fs");
+//require("dotenv").config();
+
+const AWS = require("aws-sdk");
+const S3 = require("aws-sdk/clients/s3");
+AWS.config.loadFromPath("./s3_config.json");
+const s3Bucket = new S3({
+  params: {
+    Bucket: "appoloniaapps3",
+  },
+});
 
 const updatedFilePaths = async (path, base64Data) => {
   try {
@@ -37,14 +47,31 @@ const submitScans = async function (body) {
           ) {
             let updatedFaceScanImages = [];
             for (i = 0; i < faceScanImages.length; i++) {
-              const base64Data = faceScanImages[i].replace(
-                "data:image/png;base64,",
-                ""
+              const base64Data = new Buffer.from(
+                faceScanImages[i].replace(/^data:image\/\w+;base64,/, ""),
+                "base64"
               );
-              const path = "uploads/images/" + Date.now() + ".png";
-              let getPath = await updatedFilePaths(path, base64Data);
-              console.log("get path files", getPath);
-              updatedFaceScanImages.push(getPath);
+
+              const path = Date.now() + ".png";
+              // let getPath = await updatedFilePaths(path, base64Data);
+              // console.log("get path files", getPath);
+              // updatedFaceScanImages.push(getPath);
+              //const buf = Buffer.from(req.body.imageBinary.replace(/^data:image\/\w+;base64,/, ""),'base64')
+              const data = {
+                Key: path,
+                Body: base64Data,
+                ContentEncoding: "base64",
+                ContentType: "image/png",
+              };
+              s3Bucket.putObject(data, function (err, data) {
+                if (err) {
+                  console.log(err);
+                  console.log("Error uploading data: ", data);
+                } else {
+                  console.log("successfully uploaded the image!");
+                }
+              });
+              updatedFaceScanImages.push(path);
             }
             let updatedTeethScanImages = [];
             for (i = 0; i < teethScanImages.length; i++) {
@@ -52,10 +79,26 @@ const submitScans = async function (body) {
                 "data:image/png;base64,",
                 ""
               );
-              const path = "uploads/images/" + Date.now() + ".png";
-              let getPath = await updatedFilePaths(path, base64Data);
-              console.log("get path files", getPath);
-              updatedTeethScanImages.push(getPath);
+              const path = Date.now() + ".png";
+              // let getPath = await updatedFilePaths(path, base64Data);
+              // console.log("get path files", getPath);
+              // updatedTeethScanImages.push(getPath);
+
+              const data = {
+                Key: path,
+                Body: base64Data,
+                ContentEncoding: "base64",
+                ContentType: "image/png",
+              };
+              s3Bucket.putObject(data, function (err, data) {
+                if (err) {
+                  console.log(err);
+                  console.log("Error uploading data: ", data);
+                } else {
+                  console.log("successfully uploaded the image!");
+                }
+              });
+              updatedTeethScanImages.push(path);
             }
             console.log(
               "updated",
