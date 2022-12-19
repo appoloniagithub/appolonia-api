@@ -164,6 +164,16 @@ const newChat = async (req, res) => {
     });
   }
 };
+const getLastMessage = async (conversationId) => {
+  console.log(conversationId, "get last msg");
+  let foundMessages = await Message.find({ conversationId: conversationId })
+    .sort({ _id: -1 })
+    .skip(0)
+    .limit(10);
+  foundMessages = foundMessages.reverse();
+  let lastMessage = foundMessages[foundMessages.length - 1];
+  return lastMessage.message;
+};
 
 const getConversations = async (req, res) => {
   console.log(req.body, "i am body");
@@ -171,24 +181,25 @@ const getConversations = async (req, res) => {
     let conversations = await Conversation.find({
       members: { $in: [req.body.userId] },
     });
-
-    let conversationsFiltered = conversations.map((convo) => {
-      console.log(convo, "i am cnvo");
-      return {
-        conversationId: convo._id,
-        otherMemberId: convo?.members?.find(
+    //console.log("convo in getconversations", conversations);
+    let conversationsFiltered = [];
+    for (let i = 0; i < conversations.length; i++) {
+      console.log(conversations[i], "in for loop");
+      let convoObj = {
+        conversationId: conversations[i]._id,
+        otherMemberId: conversations[i]?.members?.find(
           (memberId) => memberId !== req.body.userId
         ),
-        otherMemberData: convo.membersData.find((memberData) => {
+        otherMemberData: conversations[i].membersData.find((memberData) => {
           console.log(memberData, "i am memberdata");
           return memberData.id.toString() !== req.body.userId;
         }),
-        createdAt: convo.createdAt,
-        updatedAt: convo.updatedAt,
+        lastMessage: await getLastMessage(conversations[i]._id),
+        createdAt: conversations[i].createdAt,
+        updatedAt: conversations[i].updatedAt,
       };
-    });
-
-    // console.log(conversationsFiltered);
+      conversationsFiltered.push(convoObj);
+    }
 
     if (conversations?.length > 0) {
       res.json({
@@ -219,6 +230,61 @@ const getConversations = async (req, res) => {
     });
   }
 };
+
+// const getConversations = async (req, res) => {
+//   console.log(req.body, "i am body");
+//   try {
+//     let conversations = await Conversation.find({
+//       members: { $in: [req.body.userId] },
+//     });
+
+//     let conversationsFiltered = conversations.map((convo) => {
+//       console.log(convo, "i am cnvo");
+//       return {
+//         conversationId: convo._id,
+//         otherMemberId: convo?.members?.find(
+//           (memberId) => memberId !== req.body.userId
+//         ),
+//         otherMemberData: convo.membersData.find((memberData) => {
+//           console.log(memberData, "i am memberdata");
+//           return memberData.id.toString() !== req.body.userId;
+//         }),
+//         createdAt: convo.createdAt,
+//         updatedAt: convo.updatedAt,
+//       };
+//     });
+
+//     // console.log(conversationsFiltered);
+
+//     if (conversations?.length > 0) {
+//       res.json({
+//         serverError: 0,
+//         message: "Found conversations",
+//         data: {
+//           success: 1,
+//           conversations: conversationsFiltered,
+//         },
+//       });
+//     } else {
+//       res.json({
+//         serverError: 0,
+//         message: "Found no conversations",
+//         data: {
+//           success: 0,
+//           conversations: conversations,
+//         },
+//       });
+//     }
+//   } catch (err) {
+//     res.json({
+//       serverError: 1,
+//       message: err.message,
+//       data: {
+//         success: 0,
+//       },
+//     });
+//   }
+// };
 
 const getConversationMessages = async (req, res) => {
   console.log(req.body);
@@ -253,6 +319,7 @@ const getConversationMessages = async (req, res) => {
         data: {
           success: 1,
           messages: foundMessages,
+          lastMessage: foundMessages[foundMessages.length - 1],
         },
       });
     } else {
@@ -419,9 +486,99 @@ const newMessage = async (req, res) => {
   }
 };
 
+const createMessage = async (data) => {
+  console.log(data, "data in create msg");
+  let { conversationId, senderId, message, scanId, format } = data;
+  let createdMessage = new Message({
+    conversationId: conversationId,
+    senderId: senderId,
+    message: message,
+    format: format,
+    scanId: scanId?.length > 0 ? scanId : "",
+  });
+
+  return await createdMessage.save((err) => {
+    if (err) {
+      throw new Error("Error Creating the message");
+    } else {
+      return {
+        success: true,
+        message: "message saved successfully",
+      };
+    }
+  });
+  // if (messageSaved == "saved") {
+  //   return {
+  //     success: true,
+  //     message: "message saved successfully",
+  //   };
+  // } else {
+  //   return {
+  //     success: false,
+  //     message: "Error Creating the message",
+  //   };
+  // }
+};
+
+const createNewChat = async (data) => {
+  let { senderId, receiverId } = data;
+  let membersData = await User.find({ _id: { $in: [senderId, receiverId] } }, [
+    "firstName",
+    "lastName",
+    "image",
+  ]);
+
+  membersData = membersData.map((member) => {
+    return {
+      name: `${member.firstName} ${member.lastName}`,
+      id: member._id.toString(),
+      image: member.image,
+    };
+  });
+  console.log(membersData);
+
+  let createdConversation = new Conversation({
+    members: [senderId, receiverId],
+    membersData: membersData,
+  });
+  await createdConversation.save(async (err, doc) => {
+    if (err) {
+      throw new Error("Error Creating the Chat");
+    } else {
+      await createMessage({ ...data, conversationId: doc._id });
+    }
+  });
+};
+
+const scanChatMessage = async (data) => {
+  console.log(data, "in scan chat message");
+  let { senderId, message, scanId, format } = data;
+  let receiverId = await User.findOne({ role: "3" }, "_id"); //Admin
+  if ((senderId, receiverId, message)) {
+    let conversations = await Conversation.find({
+      members: { $in: [senderId] },
+    });
+    console.log(conversations, "conversations in scan chat message");
+    if (conversations.length > 0) {
+      let isSaved = await createMessage({
+        ...data,
+        conversationId: conversations[0]._id,
+      });
+      console.log(isSaved, "is saved");
+      return;
+    } else {
+      console.log(receiverId, "receiverId");
+      await createNewChat({ ...data, receiverId: receiverId._id });
+    }
+  } else {
+    console.log("missing required details");
+  }
+};
+
 module.exports = {
   newChat,
   getConversations,
   getConversationMessages,
   newMessage,
+  scanChatMessage,
 };

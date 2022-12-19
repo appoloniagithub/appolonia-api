@@ -5,7 +5,7 @@ const Settings = require("../Models/Settings");
 const Scans = require("../Models/Scans");
 const fs = require("fs");
 //require("dotenv").config();
-
+const chatController = require("./chat-controllers");
 const AWS = require("aws-sdk");
 const S3 = require("aws-sdk/clients/s3");
 AWS.config.loadFromPath("./s3_config.json");
@@ -66,9 +66,9 @@ const submitScans = async function (body) {
               s3Bucket.putObject(data, function (err, data) {
                 if (err) {
                   console.log(err);
-                  console.log("Error uploading data: ", data);
+                  console.log("Error uploading data: ");
                 } else {
-                  console.log("successfully uploaded the image!");
+                  console.log("successfully uploaded the image!", data);
                 }
               });
               updatedFaceScanImages.push(path);
@@ -113,7 +113,7 @@ const submitScans = async function (body) {
               teethScanImages: updatedTeethScanImages,
               created: Date.now(),
             });
-            await updatedScan.save((err, doc) => {
+            await updatedScan.save(async (err, doc) => {
               console.log(doc);
 
               if (err) {
@@ -130,7 +130,32 @@ const submitScans = async function (body) {
                     }
                   }
                 );
-                console.log("response", updatedFaceScanImages);
+
+                let msgObjImg = {
+                  senderId: userId,
+                  message: `https://appoloniaapps3.s3.amazonaws.com/${updatedTeethScanImages[0]}`,
+                  scanId: doc?._id,
+                  format: "image",
+                };
+                let updateMessage = await chatController.scanChatMessage(
+                  msgObjImg
+                );
+                let msgObjText = {
+                  senderId: userId,
+                  message:
+                    "Hi Doctor, please review my scans and let me know your feedback.",
+                  format: "text",
+                  scanId: doc?._id,
+                };
+                let updateText = await chatController.scanChatMessage(
+                  msgObjText
+                );
+
+                console.log(
+                  updateMessage,
+                  updateText,
+                  "update message in submit scan"
+                );
                 resolve({
                   serverError: 0,
                   message: "Successfully saved scans",
@@ -139,9 +164,12 @@ const submitScans = async function (body) {
                     scanId: doc?._id,
                     faceScanImages: updatedFaceScanImages,
                     teethScanImages: updatedTeethScanImages,
+                    scanFirstImage: updatedTeethScanImages[0],
                   },
                 });
               }
+              // if (data?.success == 1) {
+              // }
             });
           }
         } else {
