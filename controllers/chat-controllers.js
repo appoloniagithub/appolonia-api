@@ -4,9 +4,9 @@ const File = require("../Models/File");
 const Conversation = require("../Models/Conversations");
 const Message = require("../Models/Messages");
 
-const newChat = async (req, res) => {
+const newChat = async (data) => {
   console.log(req.body, "i am bopdy");
-  const { senderId, receiverId, message, scanId, format } = req.body;
+  const { senderId, receiverId, message, scanId, format } = data;
   if ((senderId, receiverId, message)) {
     let conversations = await Conversation.find({
       members: { $in: [senderId] },
@@ -28,7 +28,7 @@ const newChat = async (req, res) => {
     console.log(foundConversation, "Found conversations");
 
     if (foundConversation === true) {
-      res.json({
+      return {
         serverError: 0,
         message: "You already have a conversation on going",
         data: {
@@ -36,8 +36,8 @@ const newChat = async (req, res) => {
           chatExist: 1,
           conversationId: foundConversationId,
         },
-      });
-      return;
+      };
+      //return;
     }
 
     let membersData = await User.find(
@@ -116,13 +116,13 @@ const newChat = async (req, res) => {
                 });
               }
             }
-            res.json({
+            return {
               serverError: 0,
               message: "Message Sent",
               data: {
                 success: 1,
               },
-            });
+            };
           } else {
             let createdMessage = new Message({
               conversationId: doc._id.toString(),
@@ -136,32 +136,32 @@ const newChat = async (req, res) => {
               if (err) {
                 throw new Error("Error Creating the message");
               } else {
-                res.json({
+                return {
                   serverError: 0,
                   message: "Message Sent",
                   data: {
                     success: 1,
                   },
-                });
-                return;
+                };
+                //return;
               }
             });
           }
         }
       });
     } catch (err) {
-      res.json({
+      return {
         serverError: 1,
         message: err.message,
         data: {
           success: 0,
         },
-      });
+      };
     }
   } else {
-    res.json({
+    return {
       message: "somthing is missing",
-    });
+    };
   }
 };
 const getLastMessage = async (conversationId) => {
@@ -344,10 +344,10 @@ const getConversationMessages = async (req, res) => {
   }
 };
 
-const newMessage = async (req, res) => {
-  console.log(req.body, "i am body");
-  console.log(req.files, "i am files");
-  const { conversationId, senderId, message, scanId, format } = req.body;
+const newMessage = async (data) => {
+  //console.log(req.body, "i am body");
+  //console.log(req.files, "i am files");
+  const { conversationId, senderId, message, scanId, format } = data;
   try {
     // if ((conversationId, senderId, message)) {
     if (format === "scanImage") {
@@ -401,19 +401,19 @@ const newMessage = async (req, res) => {
           });
         }
       }
-      res.json({
+      return {
         serverError: 0,
         message: "Message Sent",
         data: {
           success: 1,
         },
-      });
+      };
     } else {
       if (format === "image") {
         let filesName = [];
-        if (req?.files?.length > 0) {
-          console.log(req.files, "here are the files");
-          filesName = req.files.map((file) => file.path);
+        if (data.files?.length > 0) {
+          console.log(data.files, "here are the files");
+          filesName = data.files.map((file) => file.path);
         }
         let resolvedMessages = filesName.map((fileLink) => {
           console.log(fileLink, "i nam file link");
@@ -434,14 +434,14 @@ const newMessage = async (req, res) => {
         try {
           let doneSaving = await Promise.all(resolvedMessages);
           console.log(doneSaving);
-          res.json({
+          return {
             serverError: 0,
             message: "Message Sent",
             data: {
               success: 1,
             },
-          });
-          return;
+          };
+          //return;
         } catch (err) {
           console.log(err);
           throw new Error("Something went wrong while resolving messages");
@@ -458,14 +458,14 @@ const newMessage = async (req, res) => {
           if (err) {
             throw new Error("Error Creating the message");
           } else {
-            res.json({
+            return {
               serverError: 0,
               message: "Message Sent",
               data: {
                 success: 1,
               },
-            });
-            return;
+            };
+            //return;
           }
         });
       }
@@ -476,13 +476,13 @@ const newMessage = async (req, res) => {
     // }
   } catch (err) {
     console.log(err);
-    res.json({
+    return {
       serverError: 1,
       message: err.message,
       data: {
         success: 0,
       },
-    });
+    };
   }
 };
 
@@ -551,7 +551,7 @@ const scanChatMessage = async (data) => {
     });
     console.log(conversations, "conversations in scan chat message");
     if (conversations.length > 0) {
-      let isSaved = await createMessage({
+      let isSaved = await newMessage({
         ...data,
         conversationId: conversations[0]._id,
       });
@@ -572,4 +572,6 @@ module.exports = {
   getConversationMessages,
   newMessage,
   scanChatMessage,
+  createNewChat,
+  createMessage,
 };
