@@ -541,9 +541,9 @@ const createNewChat = async (data) => {
 
 const scanChatMessage = async (data) => {
   console.log(data, "in scan chat message");
-  let { senderId, message, scanId, format } = data;
-  let receiverId = await User.find({
-    _id,
+  let { senderId, receiverId, message, scanId, format } = data;
+  receiverId = await User.find({
+    _id: { $in: [receiverId] },
   });
   if ((senderId, receiverId, message)) {
     let conversations = await Conversation.find({
