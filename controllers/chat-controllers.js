@@ -559,7 +559,7 @@ const scanChatMessage = async (data) => {
       return;
     } else {
       console.log(receiverId, "receiverId");
-      await createNewChat({ ...data, receiverId: receiverId._id });
+      await newChat({ ...data, receiverId: receiverId._id });
     }
   } else {
     console.log("missing required details");
