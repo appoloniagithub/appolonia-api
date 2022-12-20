@@ -510,7 +510,40 @@ const createMessage = async (data) => {
 };
 
 const createNewChat = async (data) => {
-  let { senderId, receiverId } = data;
+  const { senderId, receiverId, message, scanId, format } = data;
+
+  let conversations = await Conversation.find({
+    members: { $in: [senderId] },
+  });
+
+  let foundConversation = false;
+  let foundConversationId;
+  let i = 0;
+  while (i < conversations?.length && foundConversation === false) {
+    foundConversation = conversations[i].members.some(
+      (member) => member === receiverId
+    );
+    if (foundConversation === true) {
+      foundConversationId = conversations[i]._id;
+    }
+    i++;
+  }
+
+  console.log(foundConversation, "Found conversations");
+
+  if (foundConversation === true) {
+    return {
+      serverError: 0,
+      message: "You already have a conversation on going",
+      data: {
+        success: 0,
+        chatExist: 1,
+        conversationId: foundConversationId,
+      },
+    };
+    //return;
+  }
+
   let membersData = await User.find({ _id: { $in: [senderId, receiverId] } }, [
     "firstName",
     "lastName",
