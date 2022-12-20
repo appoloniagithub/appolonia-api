@@ -507,17 +507,6 @@ const createMessage = async (data) => {
       };
     }
   });
-  // if (messageSaved == "saved") {
-  //   return {
-  //     success: true,
-  //     message: "message saved successfully",
-  //   };
-  // } else {
-  //   return {
-  //     success: false,
-  //     message: "Error Creating the message",
-  //   };
-  // }
 };
 
 const createNewChat = async (data) => {
@@ -553,7 +542,9 @@ const createNewChat = async (data) => {
 const scanChatMessage = async (data) => {
   console.log(data, "in scan chat message");
   let { senderId, message, scanId, format } = data;
-  let receiverId = await User.findOne({ role: "3" }, "_id"); //Admin
+  let receiverId = await User.find({
+    _id: { $in: receiverId },
+  });
   if ((senderId, receiverId, message)) {
     let conversations = await Conversation.find({
       members: { $in: [senderId] },
