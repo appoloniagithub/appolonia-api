@@ -551,7 +551,7 @@ const scanChatMessage = async (data) => {
     });
     console.log(conversations, "conversations in scan chat message");
     if (conversations.length > 0) {
-      let isSaved = await newMessage({
+      let isSaved = await createMessage({
         ...data,
         conversationId: conversations[0]._id,
       });
@@ -559,7 +559,7 @@ const scanChatMessage = async (data) => {
       return;
     } else {
       console.log(receiverId, "receiverId");
-      await newChat({ ...data, receiverId: receiverId._id });
+      await createNewChat({ ...data, receiverId: receiverId._id });
     }
   } else {
     console.log("missing required details");

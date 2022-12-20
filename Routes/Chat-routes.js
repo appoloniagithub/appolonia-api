@@ -24,43 +24,19 @@ const upload = multer({ storage: storage });
 
 const router = express.Router();
 
-router.post("/newchat", async (req, res) => {
-  try {
-    let response = await chatController.newChat(req.body);
-    //console.log(response);
-    res.json(response);
-  } catch (err) {
-    console.log(err);
-  }
-});
+router.post("/newchat", chatController.newChat);
 router.post("/getconversations", authCheck, chatController.getConversations);
 router.post(
   "/getconversationmessages",
   authCheck,
   chatController.getConversationMessages
 );
-router.post("/newmessage", authCheck, async (req, res) => {
-  try {
-    let response = await chatController.newMessage(req.body);
-    //console.log(response);
-    res.json(response);
-  } catch (err) {
-    console.log(err);
-  }
-});
+router.post("/newmessage", authCheck, chatController.newMessage);
 
 router.post(
   "/newmessageimage",
   [authCheck, upload.array("message")],
-  async (req, res) => {
-    try {
-      let response = await chatController.newMessage(req.body);
-      //console.log(response);
-      res.json(response);
-    } catch (err) {
-      console.log(err);
-    }
-  }
+  chatController.newMessage
 );
 
 module.exports = router;
