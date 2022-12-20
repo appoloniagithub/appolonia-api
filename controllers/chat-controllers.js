@@ -543,7 +543,7 @@ const scanChatMessage = async (data) => {
   console.log(data, "in scan chat message");
   let { senderId, message, scanId, format } = data;
   let receiverId = await User.find({
-    _id: { $in: receiverId },
+    _id,
   });
   if ((senderId, receiverId, message)) {
     let conversations = await Conversation.find({
