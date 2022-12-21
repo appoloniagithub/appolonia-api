@@ -548,7 +548,7 @@ const scanChatMessage = async (data) => {
   });
   if ((senderId, receiverId, message)) {
     let conversations = await Conversation.find({
-      members: { $in: [senderId] },
+      members: { $in: [senderId, receiverId] },
     });
     console.log(conversations, "conversations in scan chat message");
     if (conversations.length > 0) {
