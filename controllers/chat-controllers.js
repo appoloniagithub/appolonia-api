@@ -511,163 +511,33 @@ const createMessage = async (data) => {
 };
 
 const createNewChat = async (data) => {
-  const { senderId, receiverId, message, scanId, format } = data;
-  if ((senderId, receiverId, message)) {
-    let conversations = await Conversation.find({
-      members: { $in: [senderId] },
-    });
+  let { senderId, receiverId } = data;
+  let membersData = await User.find({ _id: { $in: [senderId, receiverId] } }, [
+    "firstName",
+    "lastName",
+    "image",
+  ]);
 
-    let foundConversation = false;
-    let foundConversationId;
-    let i = 0;
-    while (i < conversations?.length && foundConversation === false) {
-      foundConversation = conversations[i].members.some(
-        (member) => member === receiverId
-      );
-      if (foundConversation === true) {
-        foundConversationId = conversations[i]._id;
-      }
-      i++;
-    }
-
-    console.log(foundConversation, "Found conversations");
-
-    if (foundConversation === true) {
-      return {
-        serverError: 0,
-        message: "You already have a conversation on going",
-        data: {
-          success: 0,
-          chatExist: 1,
-          conversationId: foundConversationId,
-        },
-      };
-      //return;
-    }
-
-    let membersData = await User.find(
-      { _id: { $in: [senderId, receiverId] } },
-      ["firstName", "lastName", "image"]
-    );
-
-    membersData = membersData.map((member) => {
-      return {
-        name: `${member.firstName} ${member.lastName}`,
-        id: member._id.toString(),
-        image: member.image,
-      };
-    });
-    console.log(membersData);
-
-    let createdConversation = new Conversation({
-      members: [senderId, receiverId],
-      membersData: membersData,
-    });
-
-    try {
-      createdConversation.save((err, doc) => {
-        if (err) {
-          throw new Error("Error Creating the Chat");
-        } else {
-          console.log(doc, "doc there");
-          if (format === "scanImage") {
-            for (let i = 0; i < 2; i++) {
-              if (i === 0) {
-                let createdMessage = new Message({
-                  conversationId: doc._id,
-                  senderId: senderId,
-                  message:
-                    "Hi Doctor, please review my scans and let me know your feedback.",
-                  format: "text",
-                  scanId: scanId?.length > 0 ? scanId : "",
-                });
-
-                createdMessage.save((err) => {
-                  if (err) {
-                    throw new Error("Error Creating the message");
-                  } else {
-                    // res.json({
-                    //   serverError: 0,
-                    //   message: "Message Sent",
-                    //   data: {
-                    //     success: 1,
-                    //   },
-                    // });
-                    return;
-                  }
-                });
-              } else {
-                let createdMessage = new Message({
-                  conversationId: doc._id,
-                  senderId: senderId,
-                  message: message,
-                  format: "scanImage",
-                  scanId: scanId.length > 0 ? scanId : "",
-                });
-
-                createdMessage.save((err) => {
-                  if (err) {
-                    throw new Error("Error Creating the message");
-                  } else {
-                    // res.json({
-                    //   serverError: 0,
-                    //   message: "Message Sent",
-                    //   data: {
-                    //     success: 1,
-                    //   },
-                    // });
-                    return;
-                  }
-                });
-              }
-            }
-            return {
-              serverError: 0,
-              message: "Message Sent",
-              data: {
-                success: 1,
-              },
-            };
-          } else {
-            let createdMessage = new Message({
-              conversationId: doc._id.toString(),
-              senderId: senderId,
-              message: message,
-              format: format,
-              scanId: scanId.length > 0 ? scanId : "",
-            });
-
-            createdMessage.save((err) => {
-              if (err) {
-                throw new Error("Error Creating the message");
-              } else {
-                res.json({
-                  serverError: 0,
-                  message: "Message Sent",
-                  data: {
-                    success: 1,
-                  },
-                });
-                return;
-              }
-            });
-          }
-        }
-      });
-    } catch (err) {
-      return {
-        serverError: 1,
-        message: err.message,
-        data: {
-          success: 0,
-        },
-      };
-    }
-  } else {
+  membersData = membersData.map((member) => {
     return {
-      message: "somthing is missing",
+      name: `${member.firstName} ${member.lastName}`,
+      id: member._id.toString(),
+      image: member.image,
     };
-  }
+  });
+  console.log(membersData);
+
+  let createdConversation = new Conversation({
+    members: [senderId, receiverId],
+    membersData: membersData,
+  });
+  await createdConversation.save(async (err, doc) => {
+    if (err) {
+      throw new Error("Error Creating the Chat");
+    } else {
+      await createMessage({ ...data, conversationId: doc._id });
+    }
+  });
 };
 
 const scanChatMessage = async (data) => {
