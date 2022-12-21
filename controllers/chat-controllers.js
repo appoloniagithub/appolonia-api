@@ -684,7 +684,7 @@ const scanChatMessage = async (data) => {
     if (conversations.length > 0) {
       let isSaved = await createMessage({
         ...data,
-        conversationId: conversations[1]._id,
+        conversationId: conversations[0]._id,
       });
       console.log(isSaved, "is saved");
       return;
